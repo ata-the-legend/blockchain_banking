@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.schemas.blockchain import Tokens
+
 
 class UserCreate(BaseModel):
     """Schema for creating a new user account."""
@@ -37,15 +39,7 @@ class BalanceRequest(BaseModel):
     """Schema for balance query request."""
 
     name: str = Field(..., min_length=1, description="Username")
-    token_address: str = Field(..., description="ERC20 token contract address")
-
-    @field_validator("token_address")
-    @classmethod
-    def validate_address(cls, v: str) -> str:
-        """Validate Ethereum address format."""
-        if not v.startswith("0x") or len(v) != 42:
-            raise ValueError("Invalid Ethereum address format")
-        return v
+    token: Tokens = Field(..., description="Token symbol")
 
 
 class BalanceResponse(BaseModel):
@@ -53,6 +47,7 @@ class BalanceResponse(BaseModel):
 
     name: str
     address: str
+    token: Tokens
     token_address: str
     balance: int = Field(
         ..., description="Token balance in wei (smallest unit)"
@@ -65,15 +60,7 @@ class TransferRequest(BaseModel):
     from_name: str = Field(..., min_length=1, description="Sender username")
     to_name: str = Field(..., min_length=1, description="Recipient username")
     amount: int = Field(..., gt=0, description="Amount to transfer in wei")
-    token_address: str = Field(..., description="ERC20 token contract address")
-
-    @field_validator("token_address")
-    @classmethod
-    def validate_address(cls, v: str) -> str:
-        """Validate Ethereum address format."""
-        if not v.startswith("0x") or len(v) != 42:
-            raise ValueError("Invalid Ethereum address format")
-        return v
+    token: Tokens = Field(..., description="Token symbol")
 
 
 class TransferResponse(BaseModel):
@@ -84,6 +71,7 @@ class TransferResponse(BaseModel):
     from_address: str
     to_address: str
     amount: int
+    token: Tokens | None = None
     message: str | None = None
 
 

@@ -1,5 +1,6 @@
 """Blockchain-related Pydantic schemas."""
 
+from enum import StrEnum
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -26,3 +27,13 @@ class BlockchainAccount(BaseModel):
                 "Private key must be a hex string starting with 0x"
             )
         return value
+
+
+class Tokens(StrEnum):
+    USDC = "USDC"
+
+
+def token_address_mapping(token: Tokens) -> str:
+    return {
+        Tokens.USDC: "0x72325eCDD02Db5af242DCBfDD2fC3C5E232c8e9E",
+    }[token]

@@ -18,6 +18,7 @@ from app.schemas.user import (
     TransferRequest,
     TransferResponse,
 )
+from app.schemas.blockchain import Tokens, token_address_mapping
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -45,15 +46,17 @@ async def create_account(
 
 @router.get("/get_balance", response_model=BalanceResponse)
 async def get_balance(
-    name: str, token_address: str, db: AsyncSession = Depends(get_db)
+    name: str, token: Tokens, db: AsyncSession = Depends(get_db)
 ) -> BalanceResponse:
     try:
         repo = AccountRepository(db)
         user = await repo.get_user_by_name(name)
+        token_address = token_address_mapping(token)
         balance = await repo.get_balance(name, token_address)
         return BalanceResponse(
             name=name,
             address=user.address,
+            token=token,
             token_address=token_address,
             balance=balance,
         )
@@ -87,7 +90,7 @@ async def transfer(
             from_name=transfer_data.from_name,
             to_name=transfer_data.to_name,
             amount=transfer_data.amount,
-            token_address=transfer_data.token_address,
+            token_address=token_address_mapping(transfer_data.token),
         )
 
         return TransferResponse(
@@ -96,6 +99,7 @@ async def transfer(
             from_address=from_user.address,
             to_address=to_user.address,
             amount=transfer_data.amount,
+            token=transfer_data.token,
             message="Transfer successful",
         )
     except AccountNotFoundError as e:

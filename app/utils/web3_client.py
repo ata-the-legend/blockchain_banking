@@ -139,13 +139,10 @@ class Web3Client:
         account = self.get_account_from_key(from_private_key)
         checksum_to = self.w3.to_checksum_address(to_address)
 
-        # Get nonce
         nonce = await self.w3.eth.get_transaction_count(account.address)
 
-        # Use configured gas price to keep fees predictable
         gas_price = self.w3.to_wei(settings.gas_price_gwei, "gwei")
 
-        # Build transaction
         transaction = {
             "nonce": nonce,
             "to": checksum_to,
@@ -155,15 +152,12 @@ class Web3Client:
             "chainId": settings.chain_id,
         }
 
-        # Estimate gas
         transaction["gas"] = await self.estimate_gas(transaction)
 
-        # Sign transaction
         signed_txn = self.w3.eth.account.sign_transaction(
             transaction, from_private_key
         )
 
-        # Send transaction
         tx_hash = await self.w3.eth.send_raw_transaction(
             signed_txn.rawTransaction
         )
@@ -177,7 +171,6 @@ class Web3Client:
             tx_hash=tx_hash_hex,
         )
 
-        # Wait for transaction receipt
         receipt = await self.w3.eth.wait_for_transaction_receipt(tx_hash)
 
         if receipt["status"] != 1:
@@ -197,12 +190,10 @@ class Web3Client:
         contract = self.get_contract(token_address)
         checksum_to = self.w3.to_checksum_address(to_address)
 
-        # Get nonce
         nonce = await self.w3.eth.get_transaction_count(account.address)
 
         gas_price = self.w3.to_wei(settings.gas_price_gwei, "gwei")
 
-        # Build transaction
         transaction = await contract.functions.transfer(
             checksum_to, amount
         ).build_transaction(
@@ -214,15 +205,12 @@ class Web3Client:
             }
         )
 
-        # Estimate gas
         transaction["gas"] = await self.estimate_gas(transaction)
 
-        # Sign transaction
         signed_txn = self.w3.eth.account.sign_transaction(
             transaction, from_private_key
         )
 
-        # Send transaction
         tx_hash = await self.w3.eth.send_raw_transaction(
             signed_txn.rawTransaction
         )

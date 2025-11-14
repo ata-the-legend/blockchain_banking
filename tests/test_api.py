@@ -73,7 +73,7 @@ async def test_get_balance_nonexistent_account():
             "/api/get_balance",
             params={
                 "name": "nonexistent",
-                "token_address": "0x7a816c115b8aed1fee7029dd490613f20063b9c3",
+                "token": "USDC",
             },
         )
         assert response.status_code == 404
