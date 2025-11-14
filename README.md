@@ -7,7 +7,8 @@ A production-ready FastAPI application for blockchain-based banking simulation u
 - **Async Architecture**: Fully async FastAPI with async SQLAlchemy and asyncpg
 - **Blockchain Integration**: EVM-compatible chain interaction with web3.py
 - **Database**: PostgreSQL with Alembic migrations
-- **Best Practices**: MVC pattern, dependency injection, structured logging, error handling
+- **Best Practices**: MVC pattern, dependency injection, structured logging, error handling, rate limiting
+- **Security Enhancements**: Encrypted private keys at rest via Fernet
 - **Docker**: Complete Docker Compose setup for easy deployment
 
 ## Tech Stack
@@ -37,7 +38,8 @@ app/
 ├── routers/             # API endpoints
 │   └── api.py
 └── utils/               # Utilities
-    └── web3_client.py
+  ├── crypto.py
+  └── web3_client.py
 
 migrations/              # Alembic migrations
 ```
@@ -55,7 +57,7 @@ migrations/              # Alembic migrations
 # Copy environment template
 cp .env.example .env
 
-# Edit .env and add your FAUCET_PRIVATE_KEY
+# Edit .env and add your FAUCET_PRIVATE_KEY and PRIVATE_KEY_ENCRYPTION_KEY
 nano .env
 ```
 
@@ -63,75 +65,63 @@ nano .env
 
 ```bash
 # Build and start all services
-docker-compose up --build
+docker compose up --build
 
 # The API will be available at http://localhost:8000
-# API docs at http://localhost:8000/docs
+# API docs at http://localhost:8000/api/docs
 ```
 
 ### 3. Run Migrations (automatic on startup, but manual command if needed)
 
 ```bash
-docker-compose exec app alembic upgrade head
+docker compose exec app alembic upgrade head
 ```
 
 ## API Endpoints
 
 ### Create Account
 ```bash
-POST /create_account
+POST /api/create_account
 Body: {"name": "alice"}
 Response: {"name": "alice", "address": "0x...", "private_key": "0x..."}
 ```
 
 ### Get Balance
 ```bash
-GET /get_balance?name=alice&token_address=0x7a816c115b8aed1fee7029dd490613f20063b9c3
-Response: {"balance": 1000000000000000000}
+GET /api/get_balance?name=alice&token=USDC
+Response: {"name": "alice", "token": "USDC", "balance": 1000000000000000000, "token_address": "0x..."}
 ```
 
 ### Transfer Tokens
 ```bash
-POST /transfer
+POST /api/transfer
 Body: {
   "from_name": "alice",
   "to_name": "bob",
   "amount": 100000000000000000,
-  "token_address": "0x7a816c115b8aed1fee7029dd490613f20063b9c3"
+  "token": "USDC"
 }
 Response: {"success": true, "tx_hash": "0x..."}
 ```
 
-### Get Initial Fund (Faucet)
-```bash
-POST /get_initial_fund
-Body: {"name": "alice"}
-Response: {"success": true, "tx_hash": "0x..."}
-```
 
 ## Local Development
 
 ### Setup
 
 ```bash
-# Install dependencies (if using Poetry)
-poetry install
-
-# Or with pip
-pip install -r requirements.txt
+# Install dependencies
+poetry install --no-root
 
 # Create .env file
 cp .env.example .env
 
 # Start PostgreSQL (Docker)
-docker-compose up db -d
+docker compose up db -d
 
 # Run migrations
 alembic upgrade head
 
-# Start development server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
 
 ### Create Migration
 
