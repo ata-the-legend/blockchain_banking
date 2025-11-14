@@ -13,10 +13,10 @@ class Settings(BaseSettings):
 
     # Blockchain Configuration
     rpc_url: str
-    token_address: str = "0x7a816c115b8aed1fee7029dd490613f20063b9c3"
 
     # Faucet Configuration
     faucet_private_key: str
+    private_key_encryption_key: str
 
     # API Configuration
     app_host: str = "0.0.0.0"

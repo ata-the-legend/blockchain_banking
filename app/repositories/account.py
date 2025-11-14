@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.utils.web3_client import web3_client
+from app.utils.crypto import encrypt_private_key, decrypt_private_key
 from app.settings import settings
 from app.repositories.exceptions import (
     AccountAlreadyExistsError,
@@ -37,10 +38,12 @@ class AccountRepository:
         account_data = web3_client.create_account()
 
         # Create user in database
+        encrypted_key = encrypt_private_key(account_data.private_key)
+
         user = User(
             name=name,
             address=account_data.address,
-            private_key=account_data.private_key,
+            private_key=encrypted_key,
         )
 
         self.db.add(user)
@@ -51,7 +54,7 @@ class AccountRepository:
         return UserResponse(
             name=user.name,
             address=user.address,
-            private_key=user.private_key,
+            private_key=account_data.private_key,
             faucet_tx_hash=faucet_tx_hash,
         )
 
@@ -94,8 +97,10 @@ class AccountRepository:
         except Exception as e:
             logger.error("Failed to check balance", error=str(e))
             raise BlockchainError(f"Failed to check balance: {str(e)}")
+        decrypted_private_key = decrypt_private_key(from_user.private_key)
+
         return await web3_client.transfer_erc20(
-            from_private_key=from_user.private_key,
+            from_private_key=decrypted_private_key,
             to_address=to_user.address,
             amount=amount,
             token_address=token_address,

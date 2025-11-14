@@ -154,7 +154,8 @@ pytest --cov=app --cov-report=html
 
 ⚠️ **IMPORTANT**: This is a simulation application with intentional security trade-offs:
 
-- Private keys are stored in plaintext in the database (as per requirements)
+- Private keys are stored encrypted at rest using a symmetric key loaded from the environment, but
+  the protection is only as strong as your key management
 - No authentication/authorization implemented
 - Suitable for development/testing only
 - **DO NOT use in production with real funds**
@@ -194,13 +195,19 @@ For production:
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | Required |
 | `RPC_URL` | EVM-compatible RPC endpoint | Required |
-| `TOKEN_ADDRESS` | Default ERC20 token address | Required |
 | `FAUCET_PRIVATE_KEY` | Master account private key | Required |
+| `PRIVATE_KEY_ENCRYPTION_KEY` | Base64 Fernet key for encrypting user private keys | Required |
 | `APP_HOST` | API host | `0.0.0.0` |
 | `APP_PORT` | API port | `8000` |
 | `LOG_LEVEL` | Logging level | `INFO` |
 | `CHAIN_ID` | Blockchain chain ID | `1000` |
 | `GAS_LIMIT` | Default gas limit | `100000` |
+
+Generate a compliant Fernet key with:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
 
 ## License
 
